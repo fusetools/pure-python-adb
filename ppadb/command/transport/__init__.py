@@ -1,8 +1,10 @@
 import re
 import time
+from typing import Callable, Optional
 
 from ppadb import ClearError
 from ppadb.command import Command
+from ppadb.connection import Connection
 
 from ppadb.utils.logger import AdbLogging
 
@@ -16,7 +18,9 @@ class Transport(Command):
 
         return connection
 
-    def shell(self, cmd, handler=None, timeout=None):
+    def shell(self, cmd: str,
+              handler: Optional[Callable[[Connection], None]] = None,
+              timeout: Optional[int] = None):
         conn = self.create_connection(timeout=timeout)
 
         cmd = "shell:{}".format(cmd)
@@ -63,7 +67,7 @@ class Transport(Command):
             raise ClearError(package, result.strip())
 
     def framebuffer(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def list_features(self):
         result = self.shell("pm list features 2>/dev/null")
@@ -188,7 +192,7 @@ class Transport(Command):
             else:
                 raise RuntimeError(result.strip())
 
-    def wait_boot_complete(self, timeout=60, timedelta=1):
+    def wait_boot_complete(self, timeout: int = 60, timedelta: int = 1):
         """
         :param timeout: second
         :param timedelta: second

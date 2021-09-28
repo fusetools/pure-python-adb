@@ -1,8 +1,11 @@
+from typing import Any, Dict
 from ppadb.command import Command
 
 
 class Serial(Command):
-    def _execute_cmd(self, cmd, with_response=True):
+    serial: Any
+
+    def _execute_cmd(self, cmd: str, with_response: bool = True):
         conn = self.create_connection(set_transport=False)
 
         with conn:
@@ -13,7 +16,7 @@ class Serial(Command):
             else:
                 conn.check_status()
 
-    def forward(self, local, remote, norebind=False):
+    def forward(self, local: str, remote: str, norebind: bool = False):
         if norebind:
             cmd = "host-serial:{serial}:forward:norebind:{local};{remote}".format(
                 serial=self.serial,
@@ -35,18 +38,20 @@ class Serial(Command):
         cmd = "host-serial:{serial}:list-forward".format(serial=self.serial)
         result = self._execute_cmd(cmd)
 
-        forward_map = {}
+        forward_map: Dict[str, str] = {}
 
-        for line in result.split('\n'):
-            if line:
-                serial, local, remote = line.split()
-                if serial == self.serial:
-                    forward_map[local] = remote
+        if result:
+            for line in result.split('\n'):
+                if line:
+                    serial, local, remote = line.split()
+                    if serial == self.serial:
+                        forward_map[local] = remote
 
         return forward_map
 
     def killforward(self, local):
-        cmd = "host-serial:{serial}:killforward:{local}".format(serial=self.serial, local=local)
+        cmd = "host-serial:{serial}:killforward:{local}".format(
+            serial=self.serial, local=local)
         self._execute_cmd(cmd, with_response=False)
 
     def killforward_all(self):

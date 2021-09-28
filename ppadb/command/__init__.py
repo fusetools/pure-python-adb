@@ -1,3 +1,9 @@
+from abc import abstractmethod
+from ppadb.connection import Connection
+from typing import Any
+
+
 class Command:
-    def create_connection(self, *args, **kwargs):
-        return None
+    @abstractmethod
+    def create_connection(self, *args: Any, **kwargs: Any) -> Connection:
+        raise NotImplementedError

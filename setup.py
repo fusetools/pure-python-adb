@@ -33,4 +33,5 @@ setup(
     extras_require={"async": ["aiofiles>=0.4.0"]},
     keywords="adb",
     classifiers=classifiers,
+    package_data={'pure-python-adb': ['py.typed']}
 )

@@ -33,13 +33,14 @@ class ConnectionAsync:
                 self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
 
         except (OSError, asyncio.TimeoutError) as e:
-            raise RuntimeError("ERROR: connecting to {}:{} {}.\nIs adb running on your computer?".format(self.host, self.port, e))
+            raise RuntimeError("ERROR: connecting to {}:{} {}.\nIs adb running on your computer?".format(
+                self.host, self.port, e))
 
         return self
 
     async def close(self):
         logger.debug("Connection closed...")
-        
+
         if self.writer:
             try:
                 self.writer.close()
@@ -66,7 +67,7 @@ class ConnectionAsync:
         nob = int((await self._recv(4)).decode('utf-8'), 16)
         return (await self._recv(nob)).decode('utf-8')
 
-    async def send(self, msg):
+    async def send(self, msg: str):
         msg = Protocol.encode_data(msg)
         logger.debug(msg)
         await self._send(msg)

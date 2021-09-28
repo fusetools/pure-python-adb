@@ -21,14 +21,16 @@ class Connection:
         self.close()
 
     def connect(self):
-        logger.debug("Connect to adb server - {}:{}".format(self.host, self.port))
+        logger.debug(
+            "Connect to adb server - {}:{}".format(self.host, self.port))
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         l_onoff = 1
         l_linger = 0
 
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', l_onoff, l_linger))
+        self.socket.setsockopt(
+            socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', l_onoff, l_linger))
         if self.timeout:
             self.socket.settimeout(self.timeout)
 
@@ -68,8 +70,9 @@ class Connection:
         self.socket.recv_into(view)
         return recv
 
-    def _send(self, data):
-        self.socket.send(data)
+    def _send(self, data: bytes):
+        if self.socket:
+            self.socket.send(data)
 
     def receive(self):
         nob = int(self._recv(4).decode('utf-8'), 16)
@@ -77,8 +80,8 @@ class Connection:
 
         return recv.decode('utf-8')
 
-    def send(self, msg):
-        msg = Protocol.encode_data(msg)
+    def send(self, _msg: str):
+        msg = Protocol.encode_data(_msg)
         logger.debug(msg)
         self._send(msg)
         return self._check_status()

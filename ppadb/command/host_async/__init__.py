@@ -1,3 +1,6 @@
+from abc import abstractmethod
+from ppadb.connection_async import ConnectionAsync
+from typing import List, Optional
 from ppadb.device_async import DeviceAsync
 
 
@@ -8,7 +11,7 @@ class HostAsync:
     DEVICE = "device"
     BOOTLOADER = "bootloader"
 
-    async def _execute_cmd(self, cmd):
+    async def _execute_cmd(self, cmd: str):
         async with await self.create_connection() as conn:
             await conn.send(cmd)
             return await conn.receive()
@@ -17,7 +20,7 @@ class HostAsync:
         cmd = "host:devices"
         result = await self._execute_cmd(cmd)
 
-        devices = []
+        devices: List[DeviceAsync] = []
 
         for line in result.split('\n'):
             if not line:
@@ -26,3 +29,7 @@ class HostAsync:
             devices.append(DeviceAsync(self, line.split()[0]))
 
         return devices
+
+    @abstractmethod
+    async def create_connection(self, timeout: Optional[float] = None) -> ConnectionAsync:
+        raise NotImplementedError

@@ -1,6 +1,7 @@
 import struct
 import time
 import os
+from typing import Any, Callable, Optional
 
 from ppadb.protocol import Protocol
 from ppadb.sync.stats import S_IFREG
@@ -19,16 +20,17 @@ class Sync:
         self.connection = connection
 
     @staticmethod
-    def temp(path):
+    def temp(path: str):
         return "{}/{}".format(Sync.TEMP_PATH, os.path.basename(path))
 
-    def push(self, src, dest, mode, progress=None):
+    def push(self, src: str, dest: str, mode: int, progress: Optional[Callable[[str, int, int], Any]] = None):
         """Push from local path |src| to |dest| on device.
 
         :param progress: callback, called with (filename, total_size, sent_size)
         """
         if not os.path.exists(src):
-            raise FileNotFoundError("Can't find the source file {}".format(src))
+            raise FileNotFoundError(
+                "Can't find the source file {}".format(src))
 
         stat = os.stat(src)
 
@@ -86,7 +88,7 @@ class Sync:
     def _integer(self, little_endian):
         return struct.unpack("<I", little_endian)
 
-    def _little_endian(self, n):
+    def _little_endian(self, n: Any):
         return struct.pack('<I', n)
 
     def _read_data(self):
@@ -103,7 +105,7 @@ class Sync:
         logger.debug("Send length: {}".format(data))
         self.connection.write(data)
 
-    def _send_str(self, cmd, args):
+    def _send_str(self, cmd: str, args: Any):
         """
         Format:
             {Command}{args length(little endian)}{str}

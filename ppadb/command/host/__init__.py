@@ -1,5 +1,6 @@
-from ppadb.device import Device
+from typing import Any, Dict, List, Optional
 from ppadb.command import Command
+from ppadb.device import Device
 
 
 class Host(Command):
@@ -9,7 +10,7 @@ class Host(Command):
     DEVICE = "device"
     BOOTLOADER = "bootloader"
 
-    def _execute_cmd(self, cmd, with_response=True):
+    def _execute_cmd(self, cmd: str, with_response: bool = True):
         with self.create_connection() as conn:
             conn.send(cmd)
             if with_response:
@@ -18,29 +19,31 @@ class Host(Command):
             else:
                 conn.check_status()
 
-    def devices(self, state=None):
+    def devices(self, state: Any = None):
         cmd = "host:devices"
         result = self._execute_cmd(cmd)
 
-        devices = []
+        devices: List[Device] = []
 
-        for line in result.split('\n'):
-            if not line:
-                break
+        if isinstance(result, str):
+            for line in result.split('\n'):
+                if not line:
+                    break
 
-            tokens = line.split()
-            if state and len(tokens) > 1 and tokens[1] != state:
-                continue
+                tokens = line.split()
+                if state and len(tokens) > 1 and tokens[1] != state:
+                    continue
 
-            devices.append(Device(self, tokens[0]))
+                devices.append(Device(self, tokens[0]))
 
         return devices
 
     def features(self):
         cmd = "host:features"
         result = self._execute_cmd(cmd)
-        features = result.split(",")
-        return features
+        if result:
+            features = result.split(",")
+            return features
 
     def version(self):
         with self.create_connection() as conn:
@@ -67,24 +70,29 @@ class Host(Command):
         cmd = "host:list-forward"
         result = self._execute_cmd(cmd)
 
-        device_forward_map = {}
-        for line in result.split('\n'):
-            if line:
-                serial, local, remote = line.split()
-                if serial not in device_forward_map:
-                    device_forward_map[serial] = {}
+        device_forward_map: Dict[str, Dict[str, str]] = {}
 
-                device_forward_map[serial][local] = remote
+        if result:
+            for line in result.split('\n'):
+                if line:
+                    serial, local, remote = line.split()
+                    if serial not in device_forward_map:
+                        device_forward_map[serial] = {}
+
+                    device_forward_map[serial][local] = remote
 
         return device_forward_map
 
-    def remote_connect(self, host, port):
+    def remote_connect(self, host: str, port: int) -> bool:
         cmd = "host:connect:%s:%d" % (host, port)
         result = self._execute_cmd(cmd)
 
-        return "connected" in result
+        if result:
+            return "connected" in result
 
-    def remote_disconnect(self, host=None, port=None):
+        return False
+
+    def remote_disconnect(self, host: Optional[str] = None, port: Optional[int] = None):
         cmd = "host:disconnect:"
         if host:
             cmd = "host:disconnect:{}".format(host)
